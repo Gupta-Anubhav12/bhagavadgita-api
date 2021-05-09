@@ -1,0 +1,54 @@
+version: "3.3"
+
+services:
+  proxy:
+    image: traefik:latest
+    networks:
+      - web
+      - default
+
+    ports:
+      - 8000:80
+      - 8080:8080
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command:
+      - --entrypoints.web.address=:80
+      - --providers.docker
+      - --providers.docker.exposedbydefault=false
+      - --accesslog
+      - --log
+      - --api.insecure=true
+    
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=web
+
+  backend:
+    environment:
+      - PYTHONDONTWRITEBYTECODE=1
+    build:
+      dockerfile: docker/Dockerfile
+      context: .
+    networks:
+      - web
+      - default
+    command: gunicorn main:app --bind 0.0.0.0:8000 -k uvicorn.workers.UvicornWorker --worker-connections=1000 --workers=3 --reload --timeout 300
+    volumes:
+    - ./app:/app
+    restart: always
+ 
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=web
+      - traefik.http.routers.backend-http.entrypoints=web
+      - traefik.http.routers.backend-http.rule=PathPrefix(`/docs`) || PathPrefix(`/redoc`) || PathPrefix(`/openapi.json`) || PathPrefix(`/v2`)
+      - traefik.http.services.backend.loadbalancer.server.port=8000
+
+
+volumes:
+  src-db-data:
+
+networks:
+  web:
+   external: true

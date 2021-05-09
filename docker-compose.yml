@@ -1,0 +1,63 @@
+version: "3.3"
+
+services:
+  traefik:
+    image: "traefik:v2.0.1"
+    command:
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --providers.docker
+      - --providers.docker.exposedbydefault=false
+      - --accesslog
+      - --log
+      - --certificatesresolvers.leresolver.acme.httpchallenge=true
+      - --certificatesresolvers.leresolver.acme.httpchallenge.entrypoint=web
+      - --certificatesresolvers.leresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory
+      # - --certificatesresolvers.leresolver.acme.caserver=https://acme-v02.api.letsencrypt.org/directory
+      - --certificatesresolvers.leresolver.acme.email=contact@bhagavadgita.io
+      - --certificatesresolvers.leresolver.acme.storage=/letsencrypt/bhagavadgita.json
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - ./letsencrypt:/letsencrypt
+    labels:
+      - traefik.enable=true
+
+      # global redirect to https
+      - "traefik.http.routers.http-catchall.rule=hostregexp(`{host:.+}`)"
+      - "traefik.http.routers.http-catchall.entrypoints=web"
+      - "traefik.http.routers.http-catchall.middlewares=redirect-to-https"
+
+      # middleware redirect
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+    restart: always
+
+  backend:
+    environment:
+      - PYTHONDONTWRITEBYTECODE=1
+    build:
+      dockerfile: docker/Dockerfile
+      context: .
+    command: gunicorn main:app --bind 0.0.0.0:8000 -k uvicorn.workers.UvicornWorker --worker-connections=1000 --workers=3 --reload --timeout 300
+    volumes:
+    - ./app:/app
+    restart: always
+
+    labels:
+      - traefik.enable=true
+      - "traefik.http.routers.backend.rule=Host(`api.bhagavadgita.io`)"
+      - "traefik.http.routers.backend.entrypoints=websecure"
+      - "traefik.http.routers.backend.tls=true"
+      - "traefik.http.routers.backend.tls.certresolver=leresolver"
+      - "traefik.http.services.backend.loadbalancer.server.port=8000"
+
+volumes:
+  src-db-data:
+
+networks:
+  default:
+    external:
+      name: web
