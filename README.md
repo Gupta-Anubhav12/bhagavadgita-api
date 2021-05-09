@@ -9,7 +9,7 @@
     Code for the BhagavadGita.io v2 API, which is an app built for Gita readers by Gita readers.
     <br />
     <br />
-    <a href="https://bhagavadgita.io">View Demo</a>
+    <a href="https://api.bhagavadgita.io/docs">View Docs</a>
     ·
     <a href="https://github.com/gita/bhagavadgita-api/issues">Report Bug</a>
     ·
