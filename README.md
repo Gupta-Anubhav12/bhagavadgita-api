@@ -50,7 +50,6 @@
 ## Developing Locally
 
 1. Fork this repository and clone the forked repository.
-2. Create and activate a Python 3 virtualenv.
-3. Use `pip install -r requirements.txt` to install the requirements.
-4. `python manage.py runserver` to start the server.
-5. API can be accessed at `http://127.0.0.1:5000`.
+2. Make sure docker and docker-compose are installed.
+3. Use `docker-compose -f docker-compose-dev.yml up` to install the requirements and start the development server.
+4. API can be accessed at `http://0.0.0.0:8000/docs`.
