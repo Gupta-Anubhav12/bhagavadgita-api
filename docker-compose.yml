@@ -12,8 +12,8 @@ services:
       - --log
       - --certificatesresolvers.leresolver.acme.httpchallenge=true
       - --certificatesresolvers.leresolver.acme.httpchallenge.entrypoint=web
-      - --certificatesresolvers.leresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory
-      # - --certificatesresolvers.leresolver.acme.caserver=https://acme-v02.api.letsencrypt.org/directory
+      # - --certificatesresolvers.leresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory
+      - --certificatesresolvers.leresolver.acme.caserver=https://acme-v02.api.letsencrypt.org/directory
       - --certificatesresolvers.leresolver.acme.email=contact@bhagavadgita.io
       - --certificatesresolvers.leresolver.acme.storage=/letsencrypt/bhagavadgita.json
     ports:
